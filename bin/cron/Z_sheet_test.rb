@@ -1,10 +1,9 @@
-=begin
-- Process Notes:
-1) Have a useable class
-2) Create a simple logic loop file
-3) API-key: e0e2bee07b6ffe86a7d44552636534b2
-4) Project ID: hour-of-code
-=end
+#- Process Notes:
+#1) Have a useable class
+#2) Create a simple logic loop file
+#3) API-key: e0e2bee07b6ffe86a7d44552636534b2
+#4) Project ID: hour-of-code
+
 require_relative '../../deployment'
 require 'cdo/languages'
 require 'find'
@@ -29,16 +28,7 @@ class PostTester
   end
 end
 
-
-def loop_logic
-  for i in 0..100
-    if i % 5 == 0
-      puts i
-    end
-  end
-end
-
-def file_collect()
+def file_collect
   other_files = Dir['../../lib/cdo/*.rb']
   puts other_files
 end
@@ -49,4 +39,4 @@ poster.download_local
 
 #loop_logic
 puts
-#file_collect()
+#file_collect
