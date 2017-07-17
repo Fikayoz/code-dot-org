@@ -12,6 +12,10 @@ require 'crowdin-api'
 require 'logger'
 require 'httparty'
 
+require 'open-uri'
+require 'rubygems'
+require 'zip'
+
 crowdin = Crowdin::API.new(api_key: "e0e2bee07b6ffe86a7d44552636534b2", project_id: "hour-of-code")
 crowdin.log = Logger.new $stderr
 
@@ -33,10 +37,12 @@ def file_collect
   puts other_files
 end
 
-poster = PostTester.new
-puts poster.trans_status
-poster.download_local
+#poster = PostTester.new
+#puts poster.trans_status
 
-#loop_logic
-puts
-#file_collect
+input = HTTParty.get("https://api.crowdin.com/api/project/hour-of-code/download/ar.zip?key=e0e2bee07b6ffe86a7d44552636534b2").body
+Zip::InputStream.open(StringIO.new(input)) do |io|
+  while entry = io.get_next_entry
+    puts entry.name
+  end
+end
