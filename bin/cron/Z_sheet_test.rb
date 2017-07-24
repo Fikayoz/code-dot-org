@@ -20,38 +20,17 @@ class TranslateCheck
     @transFiles = Array.new()
     @sourceFiles = Array.new()
     @transCode = "ar"
-    @transOnline = HTTParty.get("https://api.crowdin.com/api/project/hour-of-code/download/ar.zip?key=e0e2bee07b6ffe86a7d44552636534b2").body
-    @sourceOnline = HTTParty.get("https://api.crowdin.com/api/project/hour-of-code/download/en.zip?key=e0e2bee07b6ffe86a7d44552636534b2").body
+    @transOnline = HTTParty.get("https://api.crowdin.com/api/project/codeorg/download/ar.zip?key=0b35d4f4184c255ce002643252f0671e").body
     @transContent = ""
-    @sourceContent = ""
-  end
-
-  def download_english
-    open('Source.zip', 'wb') do |file|
-      file << open('https://api.crowdin.com/api/project/hour-of-code/download/en.zip?key=e0e2bee07b6ffe86a7d44552636534b2').read
-    end
-  end
-
-  def download_trans
-    open(@transCode + '.zip', 'wb') do |file|
-      file << open('https://api.crowdin.com/api/project/hour-of-code/download/' + @transCode + '.zip?key=e0e2bee07b6ffe86a7d44552636534b2').read
-    end
+    @scripts = File.open('../../i18n/locales/source/dashboard/scripts.yml').read
   end
 
   def get_files
     Zip::InputStream.open(StringIO.new(@transOnline)) do |zip_file|
       while entry = zip_file.get_next_entry
         puts entry.name 
-        if entry.name.end_with?(".md")
+        if entry.name.end_with?("scripts.yml")
           @transFiles[@transFiles.length] = entry
-        end
-      end
-    end
-    Zip::InputStream.open(StringIO.new(@sourceOnline)) do |zip_file|
-      while entry = zip_file.get_next_entry
-        puts entry.name 
-        if entry.name.end_with?(".md")
-          @sourceFiles[@sourceFiles.length] = entry
         end
       end
     end
@@ -66,46 +45,48 @@ class TranslateCheck
   def read_file
     Zip::InputStream.open(StringIO.new(@transOnline)) do |zip_file|
       while file = zip_file.get_next_entry
-        if file.name == @transFiles[0].name
+        if file.name.end_with?("scripts.yml")
           puts file.class
           @transContent = file.get_input_stream.read
-          puts @transContent.class
+          #puts @transContent.class
           #puts
           #puts @transContent
-        end
-      end
-    end
-    Zip::InputStream.open(StringIO.new(@sourceOnline)) do |zip_file|
-      while file = zip_file.get_next_entry
-        if file.name == @sourceFiles[0].name
-          puts file.class
-          @sourceContent = file.get_input_stream.read
-          puts @sourceFiles.class
-          #puts @sourceFiles
         end
       end
     end
   end
 
   def parse_n_compare
-    #transLines = []
-    #sourceLines = []
-    #@sourceContent = @sourceContent.strip
-    #@sourceContent.gsub /^$\n/, ''
-    #@transContent = @transContent.strip
-    #@transeContent.gsub /^$\n/, ''    
     puts @transContent
     puts
     puts "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
     puts
-    puts @sourceContent
+    puts @scripts
+    puts
     puts "Are the English File and the language File the same? #{@sourceContent == @transContent}"
   end
 
-  def get_source
-    source = File.open('../../i18n/locales/source/dashboard/scripts.yml')
-    contents = source.read
-    return contents
+  def compare_lines
+    sourceLines = @scripts.split("\n")[2..-1]
+    transLines = @transContent.split("\n")
+    translated = Array.new()
+    untranslated = Array.new()
+    for i in 0..10#sourceLines.length
+      puts sourceLines[i]
+      puts transLines[i]
+      if sourceLines[i] == transLines[i]
+        #untranslated[untranslated.length] == transLines[i]
+        puts ("//////////////////////////////////////// untranslated")
+        puts
+      else
+        #translated[translated.length] == transLines[i]
+        puts ("//////////////////////////////////////// translated")
+        puts
+      end
+    end
+    #puts translated
+    #puts ("Testing, testing")
+    #puts untranslated
   end
 
 end
@@ -113,7 +94,6 @@ end
 test = TranslateCheck.new
 #test.get_files
 #puts
-#test.read_file
+test.read_file
 #puts
-#test.parse_n_compare
-puts test.get_source 
+test.compare_lines
