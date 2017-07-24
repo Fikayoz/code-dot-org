@@ -1,5 +1,5 @@
-#1) API-key: e0e2bee07b6ffe86a7d44552636534b2
-#2) Project ID: hour-of-cod
+#1) API-key: 0b35d4f4184c255ce002643252f0671e
+#2) Project ID: codeorg
 #3) low compare: co
 #4) high compare: pt-BR
 #5) Origin path: '../../i18n/locales/source'
@@ -99,15 +99,21 @@ class TranslateCheck
     puts "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
     puts
     puts @sourceContent
-    puts @sourceContent == @transContent
+    puts "Are the English File and the language File the same? #{@sourceContent == @transContent}"
+  end
+
+  def get_source
+    source = File.open('../../i18n/locales/source/dashboard/scripts.yml')
+    contents = source.read
+    return contents
   end
 
 end
 
 test = TranslateCheck.new
-test.get_files
-puts
-test.read_file
-puts
-test.parse_n_compare
-#test.check_files
+#test.get_files
+#puts
+#test.read_file
+#puts
+#test.parse_n_compare
+puts test.get_source 
