@@ -13,6 +13,7 @@ require 'httparty'
 require 'open-uri'
 require 'rubygems'
 require 'zip'
+require 'yaml'
 
 class TranslateCheck
 
@@ -36,12 +37,6 @@ class TranslateCheck
     end
   end
 
-  def check_files
-    @transFiles.each do |file|
-      puts file.name
-    end
-  end
-
   def read_file
     Zip::InputStream.open(StringIO.new(@transOnline)) do |zip_file|
       while file = zip_file.get_next_entry
@@ -54,16 +49,6 @@ class TranslateCheck
         end
       end
     end
-  end
-
-  def parse_n_compare
-    puts @transContent
-    puts
-    puts "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
-    puts
-    puts @scripts
-    puts
-    puts "Are the English File and the language File the same? #{@sourceContent == @transContent}"
   end
 
   def compare_lines
@@ -89,11 +74,20 @@ class TranslateCheck
     #puts untranslated
   end
 
+  def parse_yaml
+    base = File.open('../../i18n/locales/source/dashboard/scripts.yml')
+    test = YAML.load_file(base)
+    #puts test[en][data][script][name][starwars]
+    puts base.class
+    puts test.class
+  end
+
 end
 
 test = TranslateCheck.new
 #test.get_files
 #puts
-test.read_file
+#test.read_file
 #puts
-test.compare_lines
+#test.compare_lines
+test.parse_yaml
