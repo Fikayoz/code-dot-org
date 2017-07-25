@@ -20,10 +20,8 @@ class TranslateCheck
   def initialize
     @transFiles = Array.new()
     @sourceFiles = Array.new()
-    @transCode = "ar"
-    @transOnline = HTTParty.get("https://api.crowdin.com/api/project/codeorg/download/ar.zip?key=0b35d4f4184c255ce002643252f0671e").body
-    @transContent = ""
-    @scripts = File.open('../../i18n/locales/source/dashboard/scripts.yml').read
+    @transScript = YAML.load_file(File.open('../../i18n/locales/ar-SA/dashboard/scripts.yml'))
+    @sourceScript = YAML.load_file(File.open('../../i18n/locales/source/dashboard/scripts.yml'))
   end
 
   def get_files
@@ -86,12 +84,29 @@ class TranslateCheck
 
   def nested_hash_value(obj,key)
     if obj.respond_to?(:key?) && obj.key?(key)
-      puts obj[key]
-      puts "Found it!"
+      return obj[key]
     elsif obj.respond_to?(:each)
       r = nil
       obj.find{ |*a| r=nested_hash_value(a.last,key) }
       r
+    end
+  end
+
+  def get_hash_list
+    starwarsSource = self.nested_hash_value(@transScript,"starwars")
+    starwarsTrans = self.nested_hash_value(@sourceScript,"starwars")
+    hash_search(starwarsSource)
+    puts
+    hash_search(starwarsTrans)
+  end
+
+  def hash_search(hash)
+    hash.each do |key, value|
+      if value.is_a?(Hash)
+        hash_search(value)
+      else
+        puts "Key: #{key}, value: #{value}"
+      end
     end
   end
 
@@ -103,4 +118,4 @@ test = TranslateCheck.new
 #test.read_file
 #puts
 #test.compare_lines
-test.parse_yaml
+test.get_hash_list
