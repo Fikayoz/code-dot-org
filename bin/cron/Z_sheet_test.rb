@@ -77,9 +77,22 @@ class TranslateCheck
   def parse_yaml
     base = File.open('../../i18n/locales/source/dashboard/scripts.yml')
     test = YAML.load_file(base)
+    self.nested_hash_value(test,"starwars")
+    puts
     #puts test[en][data][script][name][starwars]
     puts base.class
     puts test.class
+  end
+
+  def nested_hash_value(obj,key)
+    if obj.respond_to?(:key?) && obj.key?(key)
+      puts obj[key]
+      puts "Found it!"
+    elsif obj.respond_to?(:each)
+      r = nil
+      obj.find{ |*a| r=nested_hash_value(a.last,key) }
+      r
+    end
   end
 
 end
