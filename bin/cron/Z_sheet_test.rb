@@ -37,6 +37,14 @@ class TranslateCheck
     end
   end
 
+  def get_languages
+    @languages = Array.new()
+    @symbols.each do |symbol|
+      file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
+      @transScripts[@transScripts.length] = YAML.load_file(file)
+    end
+  end
+
   def parse_yaml
     base = File.open("../../i18n/locales/source/dashboard/scripts.yml")
     test = YAML.load_file(base)
@@ -57,12 +65,26 @@ class TranslateCheck
     end
   end
 
-  def get_hash_list
-    starwarsSource = self.nested_hash_value(@sourceScript,"starwars")
-    starwarsTrans = self.nested_hash_value(@transScript,"starwars")
+  def get_hash_list(courseName)
+    starwarsSource = self.nested_hash_value(@sourceScript,courseName)
+    starwarsTrans = self.nested_hash_value(@transScript,courseName)
+    @holder = Hash.new(0)
     hash_search(starwarsSource)
-    puts
+    source = @holder 
+    @holder = Hash.new(0)
     hash_search(starwarsTrans)
+    trans = @holder
+    source.each do |key, value|
+      puts source[key]
+      puts trans[key]
+      translated = source[key] != trans[key]
+      if source[key].strip.empty? && trans[key].strip.empty?
+        translated = true
+      end
+      puts translated
+      puts "//////////////////////////////"
+      puts
+    end
   end
 
   def hash_search(hash)
@@ -70,13 +92,23 @@ class TranslateCheck
       if value.is_a?(Hash)
         hash_search(value)
       else
-        puts "Key: #{key}, value: #{value}"
+        #puts "Key: #{key}, value: #{value}"
+        @holder[key] = value
       end
     end
   end
 
-  def g_sheet_communicate #////////////////////////////////////////
-    puts @symbols
+  def compare
+  end
+
+  def g_sheet_communicate
+    #puts @symbols
+    @transScripts.each do |script|
+      puts "#{script.keys[0]}:"
+      puts self.nested_hash_value(script, "starwars")
+      puts "/////////////////////////////////////////////////"
+      puts
+    end
   end
 
 end
@@ -87,6 +119,5 @@ test = TranslateCheck.new
 #test.read_file
 #puts
 #test.compare_lines
-#test.get_hash_list
-test.g_sheet_communicate
-#puts test.nested_hash_value(YAML.load_file(File.open('../../i18n/locales/source/dashboard/scripts.yml')),"starwars")
+test.get_hash_list("starwars")
+#test.g_sheet_communicate
