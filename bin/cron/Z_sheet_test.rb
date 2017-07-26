@@ -18,31 +18,25 @@ class TranslateCheck
     @sourceFiles = Array.new()
     @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
     @sourceScript = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
-    self.get_local_symbols
-    self.get_local_scripts
+    @symbols = self.get_local_symbols
+    @transScripts = self.get_local_scripts
   end
 
   def get_local_symbols
-    @symbols = Array.new()
+    symbols = Array.new()
     Languages.get_locale.each do |properties|
-      @symbols[@symbols.length] = properties[properties.keys[0]]
+      symbols[symbols.length] = properties[properties.keys[0]]
     end
+    return symbols
   end
 
   def get_local_scripts
-    @transScripts = Array.new()
+    transScripts = Array.new()
     @symbols.each do |symbol|
       file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
-      @transScripts[@transScripts.length] = YAML.load_file(file)
+      transScripts[transScripts.length] = YAML.load_file(file)
     end
-  end
-
-  def get_languages
-    @languages = Array.new()
-    @symbols.each do |symbol|
-      file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
-      @transScripts[@transScripts.length] = YAML.load_file(file)
-    end
+    return transScripts
   end
 
   def parse_yaml
@@ -119,5 +113,5 @@ test = TranslateCheck.new
 #test.read_file
 #puts
 #test.compare_lines
-test.get_hash_list("starwars")
-#test.g_sheet_communicate
+#test.get_hash_list("course2")
+test.g_sheet_communicate
