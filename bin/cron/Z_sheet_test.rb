@@ -1,8 +1,4 @@
-#1) API-key: 0b35d4f4184c255ce002643252f0671e
-#2) Project ID: codeorg
-#3) low compare: co
-#4) high compare: pt-BR
-#5) Origin path: '../../i18n/locales/source'
+#1) Origin path: '../../i18n/locales/source'
 
 require_relative '../../deployment'
 require 'cdo/languages'
@@ -20,60 +16,29 @@ class TranslateCheck
   def initialize
     @transFiles = Array.new()
     @sourceFiles = Array.new()
-    @transScript = YAML.load_file(File.open('../../i18n/locales/ar-SA/dashboard/scripts.yml'))
-    @sourceScript = YAML.load_file(File.open('../../i18n/locales/source/dashboard/scripts.yml'))
+    @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
+    @sourceScript = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    self.get_local_symbols
+    self.get_local_scripts
   end
 
-  def get_files
-    Zip::InputStream.open(StringIO.new(@transOnline)) do |zip_file|
-      while entry = zip_file.get_next_entry
-        puts entry.name 
-        if entry.name.end_with?("scripts.yml")
-          @transFiles[@transFiles.length] = entry
-        end
-      end
+  def get_local_symbols
+    @symbols = Array.new()
+    Languages.get_locale.each do |properties|
+      @symbols[@symbols.length] = properties[properties.keys[0]]
     end
   end
 
-  def read_file
-    Zip::InputStream.open(StringIO.new(@transOnline)) do |zip_file|
-      while file = zip_file.get_next_entry
-        if file.name.end_with?("scripts.yml")
-          puts file.class
-          @transContent = file.get_input_stream.read
-          #puts @transContent.class
-          #puts
-          #puts @transContent
-        end
-      end
+  def get_local_scripts
+    @transScripts = Array.new()
+    @symbols.each do |symbol|
+      file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
+      @transScripts[@transScripts.length] = YAML.load_file(file)
     end
-  end
-
-  def compare_lines
-    sourceLines = @scripts.split("\n")[2..-1]
-    transLines = @transContent.split("\n")
-    translated = Array.new()
-    untranslated = Array.new()
-    for i in 0..10#sourceLines.length
-      puts sourceLines[i]
-      puts transLines[i]
-      if sourceLines[i] == transLines[i]
-        #untranslated[untranslated.length] == transLines[i]
-        puts ("//////////////////////////////////////// untranslated")
-        puts
-      else
-        #translated[translated.length] == transLines[i]
-        puts ("//////////////////////////////////////// translated")
-        puts
-      end
-    end
-    #puts translated
-    #puts ("Testing, testing")
-    #puts untranslated
   end
 
   def parse_yaml
-    base = File.open('../../i18n/locales/source/dashboard/scripts.yml')
+    base = File.open("../../i18n/locales/source/dashboard/scripts.yml")
     test = YAML.load_file(base)
     self.nested_hash_value(test,"starwars")
     puts
@@ -93,8 +58,8 @@ class TranslateCheck
   end
 
   def get_hash_list
-    starwarsSource = self.nested_hash_value(@transScript,"starwars")
-    starwarsTrans = self.nested_hash_value(@sourceScript,"starwars")
+    starwarsSource = self.nested_hash_value(@sourceScript,"starwars")
+    starwarsTrans = self.nested_hash_value(@transScript,"starwars")
     hash_search(starwarsSource)
     puts
     hash_search(starwarsTrans)
@@ -110,6 +75,10 @@ class TranslateCheck
     end
   end
 
+  def g_sheet_communicate #////////////////////////////////////////
+    puts @symbols
+  end
+
 end
 
 test = TranslateCheck.new
@@ -118,4 +87,6 @@ test = TranslateCheck.new
 #test.read_file
 #puts
 #test.compare_lines
-test.get_hash_list
+#test.get_hash_list
+test.g_sheet_communicate
+#puts test.nested_hash_value(YAML.load_file(File.open('../../i18n/locales/source/dashboard/scripts.yml')),"starwars")
