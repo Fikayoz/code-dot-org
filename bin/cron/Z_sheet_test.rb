@@ -10,22 +10,23 @@ require 'open-uri'
 require 'rubygems'
 require 'zip'
 require 'yaml'
+require 'json'
 
 class TranslateCheck
 
   def initialize
     @transFiles = Array.new()
     @sourceFiles = Array.new()
-    @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
-    @scriptSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
-    @studioSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
-    @mobileSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
-    @slideSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
     @symbols = self.get_local_symbols
-    @scriptFiles = self.get_local_scripts
-    @studioFiles = Array.new()
-    @mobileFiles = Array.new()
-    @slideFiles = Array.new()
+    @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
+    @scriptsSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    @studioSource = JSON.parse(File.read("../../i18n/locales/source/blockly-mooc/studio.json"))
+    @mobileSource = YAML.load_file(File.open("../../i18n/locales/source/pegasus/mobile.yml"))
+    @slideSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/slides.yml"))
+    @scriptsFiles = self.get_scripts_files
+    @studioFiles = self.get_studio_files
+    @mobileFiles = self.get_mobile_files
+    @slideFiles = self.get_slide_files
   end
 
   def get_local_symbols
@@ -36,7 +37,7 @@ class TranslateCheck
     return symbols
   end
 
-  def get_local_scripts
+  def get_scripts_files
     scriptFiles = Array.new()
     @symbols.each do |symbol|
       file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
@@ -45,29 +46,47 @@ class TranslateCheck
     return scriptFiles
   end
 
-  def parse_yaml
-    base = File.open("../../i18n/locales/source/dashboard/scripts.yml")
-    test = YAML.load_file(base)
-    self.nested_hash_value(test,"starwars")
-    puts
-    #puts test[en][data][script][name][starwars]
-    puts base.class
-    puts test.class
+  def get_studio_files
+    studioFiles = Array.new()
+    @symbols.each do |symbol|
+      file = File.read("../../i18n/locales/#{symbol}/blockly-mooc/studio.json")
+      #text = File.read(file)
+      studioFiles[studioFiles.length] = JSON.parse(file)
+    end
+    return studioFiles
   end
 
-  def nested_hash_value(obj,key)
+  def get_mobile_files
+    mobileFiles = Array.new()
+    @symbols.each do |symbol|
+      file = File.open("../../i18n/locales/#{symbol}/pegasus/mobile.yml")
+      mobileFiles[mobileFiles.length] = YAML.load_file(file)
+    end
+    return mobileFiles
+  end
+
+  def get_slide_files
+    slideFiles = Array.new()
+    @symbols.each do |symbol|
+      file = File.open("../../i18n/locales/#{symbol}/dashboard/slides.yml")
+      slideFiles[slideFiles.length] = YAML.load_file(file)
+    end
+    return slideFiles
+  end
+
+  def find_nested_key(obj,key)
     if obj.respond_to?(:key?) && obj.key?(key)
       return obj[key]
     elsif obj.respond_to?(:each)
       r = nil
-      obj.find{ |*a| r=nested_hash_value(a.last,key) }
+      obj.find{ |*a| r=find_nested_key(a.last,key) }
       r
     end
   end
 
   def get_hash_list(courseName)
-    starwarsSource = self.nested_hash_value(@sourceScript,courseName)
-    starwarsTrans = self.nested_hash_value(@transScript,courseName)
+    starwarsSource = self.find_nested_key(@sourceScript,courseName)
+    starwarsTrans = self.find_nested_key(@transScript,courseName)
     @holder = Hash.new(0)
     hash_search(starwarsSource)
     source = @holder 
@@ -101,15 +120,30 @@ class TranslateCheck
   def compare
   end
 
-  def g_sheet_communicate
-    #puts @symbols
-    @transScripts.each do |script|
+  def trans_files(filesArray, phrase)
+    filesArray.each do |script|
       puts "#{script.keys[0]}:"
-      puts self.nested_hash_value(script, "starwars")
-      puts "/////////////////////////////////////////////////"
+      puts self.find_nested_key(script, phrase)
+      puts "///////////////////////////////////////////////////////////////////////////"
       puts
     end
   end
+
+  def scripts_files
+    trans_files(@scriptsFiles, "starwarsblocks")
+  end
+
+  def mobile_files
+    trans_files(@scriptsFiles, "starwars")
+  end
+
+  def slide_files
+    trans_files(@scriptsFiles, "starwars")
+  end
+
+  #def trans_scripts
+  #  trans_files(@scriptsFiles, "starwars")
+  #end
 
 end
 
@@ -120,4 +154,4 @@ test = TranslateCheck.new
 #puts
 #test.compare_lines
 #test.get_hash_list("course2")
-test.g_sheet_communicate
+#test.trans_files
