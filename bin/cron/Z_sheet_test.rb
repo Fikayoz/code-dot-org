@@ -1,4 +1,7 @@
 #1) Origin path: '../../i18n/locales/source'
+#2) slides.yml -> "starwars_blocks"
+#3) mobile.yml -> "starwars"
+#4) studio.json -> Whole file
 
 require_relative '../../deployment'
 require 'cdo/languages'
