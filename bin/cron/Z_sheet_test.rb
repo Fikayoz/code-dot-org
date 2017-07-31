@@ -17,9 +17,15 @@ class TranslateCheck
     @transFiles = Array.new()
     @sourceFiles = Array.new()
     @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
-    @sourceScript = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    @scriptSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    @studioSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    @mobileSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
+    @slideSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
     @symbols = self.get_local_symbols
-    @transScripts = self.get_local_scripts
+    @scriptFiles = self.get_local_scripts
+    @studioFiles = Array.new()
+    @mobileFiles = Array.new()
+    @slideFiles = Array.new()
   end
 
   def get_local_symbols
@@ -31,12 +37,12 @@ class TranslateCheck
   end
 
   def get_local_scripts
-    transScripts = Array.new()
+    scriptFiles = Array.new()
     @symbols.each do |symbol|
       file = File.open("../../i18n/locales/#{symbol}/dashboard/scripts.yml")
-      transScripts[transScripts.length] = YAML.load_file(file)
+      scriptFiles[scriptFiles.length] = YAML.load_file(file)
     end
-    return transScripts
+    return scriptFiles
   end
 
   def parse_yaml
