@@ -19,7 +19,7 @@ const sections = [
     linkToAssigned: "to Course",
     numberOfStudents: 14,
     linkToStudents: "to Manage Students tab",
-    sectionCode: "ABCDEF"
+    code: "ABCDEF"
   },
   {
     name: "Algebra Period 2",
@@ -29,7 +29,7 @@ const sections = [
     linkToAssigned: "to Course",
     numberOfStudents: 19,
     linkToStudents: "to Manage Students tab",
-    sectionCode: "EEB206"
+    code: "EEB206"
   },
   {
     name: "Period 3",
@@ -39,20 +39,20 @@ const sections = [
     linkToAssigned: "to Course",
     numberOfStudents: 22,
     linkToStudents: "to Manage Students tab",
-    sectionCode: "HPRWHG"
+    code: "HPRWHG"
   },
 ];
 
 const courses = [
   {
-    name: "Play Lab",
+    title: "Play Lab",
     description: "Create a story or make a game with Play Lab!",
     link: "https://code.org/playlab",
     image:"photo source",
     assignedSections: []
   },
   {
-    name: "CSP Unit 2 - Digital Information",
+    title: "CSP Unit 2 - Digital Information",
     description: "Explore how more complex digital information is represented and manipulated through computation and visualization",
     link: "https://curriculum.code.org/csp/unit2/",
     image:"photo source",

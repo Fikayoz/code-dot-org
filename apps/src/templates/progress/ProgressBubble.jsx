@@ -1,14 +1,8 @@
 import React, { PropTypes } from 'react';
 import Radium from 'radium';
 import color from "@cdo/apps/util/color";
-import ReactTooltip from 'react-tooltip';
-import FontAwesome from '../FontAwesome';
-import { LevelStatus } from '@cdo/apps/util/sharedConstants';
-import _ from 'lodash';
-import experiments from '@cdo/apps/util/experiments';
 import NewProgressBubble from './NewProgressBubble';
-
-import { BUBBLE_COLORS } from '@cdo/apps/code-studio/components/progress/ProgressDot';
+import { levelType } from './progressTypes';
 
 export const DOT_SIZE = 30;
 
@@ -47,61 +41,12 @@ const styles = {
 
 const ProgressBubble = React.createClass({
   propTypes: {
-    // TODO(bjvanminnen): Most of these props we end up just extracting from
-    // level. It probably make sense (in a future PR) to just pass level, and
-    // have this class own extracting data from it.
-    number: PropTypes.number.isRequired,
-    status: PropTypes.oneOf(Object.keys(BUBBLE_COLORS)).isRequired,
-    url: PropTypes.string,
+    level: levelType.isRequired,
     disabled: PropTypes.bool.isRequired,
-    levelName: PropTypes.string,
-    levelIcon: PropTypes.string
   },
 
   render() {
-    const { number, status, url, levelName, levelIcon } = this.props;
-
-    const disabled = this.props.disabled || levelIcon === 'lock';
-
-    const style = {
-      ...styles.main,
-      ...(!disabled && styles.enabled),
-      ...(BUBBLE_COLORS[disabled ? LevelStatus.not_tried : status])
-    };
-
-    let href = '';
-    if (!disabled && url) {
-      href = url + location.search;
-    }
-
-    const tooltipId = _.uniqueId();
-    const interior = levelIcon === 'lock' ? <FontAwesome icon="lock"/> : number;
-
-    let bubble = (
-      <div style={style} data-tip data-for={tooltipId} aria-describedby={tooltipId}>
-        {interior}
-        <ReactTooltip
-          id={tooltipId}
-          role="tooltip"
-          wrapper="span"
-          effect="solid"
-        >
-          <FontAwesome icon={levelIcon} style={styles.tooltipIcon}/>
-          {levelName}
-        </ReactTooltip>
-      </div>
-    );
-
-    // If we have an href, wrap in an achor tag
-    if (href) {
-      bubble = (
-        <a href={href}>
-          {bubble}
-        </a>
-      );
-    }
-
-    return bubble;
+    return <NewProgressBubble {...this.props}/>;
   }
 });
 
@@ -109,9 +54,4 @@ const ProgressBubble = React.createClass({
 // connector between bubbles
 ProgressBubble.height = DOT_SIZE + styles.main.marginTop + styles.main.marginBottom;
 
-// If progressBubbles is enabled, use our NewProgressBubble instead
-let ExportedProgressBubble = Radium(ProgressBubble);
-if (experiments.isEnabled('progressBubbles')) {
-  ExportedProgressBubble = NewProgressBubble;
-}
-export default ExportedProgressBubble;
+export default Radium(ProgressBubble);

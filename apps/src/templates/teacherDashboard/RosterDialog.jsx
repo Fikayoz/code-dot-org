@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseDialog from '../BaseDialog';
-import { classroomShape, loadErrorShape } from './shapes';
+import { classroomShape, loadErrorShape, OAuthSectionTypes } from './shapes';
 import color from '../../util/color';
 import locale from '@cdo/locale';
 
@@ -55,7 +55,7 @@ const styles = {
   },
 };
 
-const ClassroomList = ({classrooms, onSelect, selectedId}) => classrooms.length ?
+const ClassroomList = ({classrooms, onSelect, selectedId, provider}) => classrooms.length ?
   <div>
     {classrooms.map(classroom => (
       <div
@@ -77,24 +77,48 @@ const ClassroomList = ({classrooms, onSelect, selectedId}) => classrooms.length 
       </div>
     ))}
   </div> :
-  <div>
-    <p>
-      {locale.noClassroomsFound()}
-    </p>
-    <a href="https://classroom.google.com/">
-      {locale.addRemoveGoogleClassrooms()}
-    </a>
-  </div>
+  <NoClassroomsFound provider={provider}/>
 ;
 ClassroomList.propTypes = {
   classrooms: React.PropTypes.array.isRequired,
   onSelect: React.PropTypes.func.isRequired,
   selectedId: React.PropTypes.string,
+  provider: React.PropTypes.oneOf(Object.keys(OAuthSectionTypes)),
+};
+
+const NoClassroomsFound = ({provider}) => {
+  switch (provider) {
+    case OAuthSectionTypes.google_classroom:
+      return (
+        <div>
+          <p>
+            {locale.noClassroomsFound()}
+          </p>
+          <a href="https://classroom.google.com/">
+              {locale.addRemoveGoogleClassrooms()}
+          </a>
+        </div>
+      );
+    case OAuthSectionTypes.clever:
+      return (
+        <div>
+          <p>
+            {locale.noClassroomsFound()}
+          </p>
+          <a href="https://classroom.google.com/">
+            {locale.addRemoveCleverClassrooms()}
+          </a>
+        </div>
+      );
+  }
+};
+NoClassroomsFound.propTypes = {
+  provider: React.PropTypes.oneOf(Object.keys(OAuthSectionTypes)),
 };
 
 const LoadError = ({error, studioUrl}) =>
   <div>
-    <a href={`${studioUrl}/users/auth/google_oauth2?scope=classroom.courses.readonly,classroom.rosters.readonly`}>
+    <a href={`${studioUrl}/users/auth/google_oauth2?scope=userinfo.email,userinfo.profile,classroom.courses.readonly,classroom.rosters.readonly`}>
       {locale.authorizeGoogleClassrooms()}
     </a>
     <p style={styles.error}>
@@ -114,6 +138,7 @@ export default class RosterDialog extends React.Component {
     classrooms: React.PropTypes.arrayOf(classroomShape),
     loadError: loadErrorShape,
     studioUrl: React.PropTypes.string.isRequired,
+    provider: React.PropTypes.oneOf(Object.keys(OAuthSectionTypes)),
   }
 
   constructor(props) {
@@ -135,16 +160,27 @@ export default class RosterDialog extends React.Component {
   };
 
   render() {
+    let title = '';
+    switch (this.props.provider) {
+      case OAuthSectionTypes.google_classroom:
+        title = locale.selectGoogleClassroom();
+        break;
+      case OAuthSectionTypes.clever:
+        title = locale.selectCleverSection();
+        break;
+    }
+
     return (
       <BaseDialog
         useUpdatedStyles
+        fixedHeight={480}
         isOpen={this.props.isOpen}
         handleClose={this.cancel}
         assetUrl={() => ''}
         {...this.props}
       >
         <h2 style={styles.title}>
-          {locale.selectGoogleClassroom()}
+          {title}
         </h2>
         <div style={styles.content}>
           {this.props.loadError ?
@@ -157,6 +193,7 @@ export default class RosterDialog extends React.Component {
                 classrooms={this.props.classrooms}
                 onSelect={this.onClassroomSelected}
                 selectedId={this.state.selectedId}
+                provider={this.props.provider}
               /> :
               locale.loading()
           }

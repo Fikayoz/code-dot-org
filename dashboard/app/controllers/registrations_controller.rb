@@ -31,6 +31,10 @@ class RegistrationsController < Devise::RegistrationsController
     Retryable.retryable on: [Mysql2::Error, ActiveRecord::RecordNotUnique], matching: /Duplicate entry/ do
       super
     end
+    should_send_new_teacher_email = current_user && current_user.teacher?
+    # Keep behind pagemode flag
+    should_send_new_teacher_email &= cookies && cookies[:pm] == 'send_new_teacher_email'
+    TeacherMailer.new_teacher_email(current_user).deliver_now if should_send_new_teacher_email
   end
 
   def upgrade
@@ -59,6 +63,12 @@ class RegistrationsController < Devise::RegistrationsController
     successfully_updated = can_update && current_user.update(update_params(params_to_pass))
     has_email = current_user.parent_email.blank? && current_user.hashed_email.present?
     success_message_kind = has_email ? :personal_login_created_email : :personal_login_created_username
+
+    if successfully_updated && current_user.parent_email.present?
+      ParentMailer.student_associated_with_parent_email(current_user.parent_email, current_user).deliver_now
+    end
+
+    current_user.reload unless successfully_updated # if update fails, roll back user model so error page renders correctly
     respond_to_account_update(successfully_updated, success_message_kind)
   end
 

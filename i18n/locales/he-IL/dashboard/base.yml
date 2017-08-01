@@ -16,7 +16,8 @@ he:
         name: 'שם תצוגה'
         name_example: 'Display Name<br/>(e.g. Cool Coder or Jane S.)'
         email: 'דואר אלקטרוני'
-        personal_email: 'Personal email address'
+        parent_email: 'Parent/guardian email'
+        personal_email: "Personal email address <a href=\"%{url}\">(click here if you don't have an email address)</a>"
         username: 'שם משתמש'
         password: 'סיסמה'
         password_confirmation: 'וידוא סיסמא'
@@ -159,7 +160,7 @@ he:
   password:
     reset_form:
       title: 'שכחת את הסיסמא שלך?'
-      instructions: "Enter your email address below and we'll send you password reset instructions."
+      instructions: "Enter your email address associated with your account below and we'll send you password reset instructions."
       email: 'כתובת דואר אלקטרוני'
       submit: 'שלח'
     reset_errors:
@@ -180,6 +181,10 @@ he:
       ללמוד קוד מביל גייטס, מארק צוקרברג, כועס ציפורים, וצמחים נגד זומבים! :-)
       
       %{name}
+  parent_mailer:
+    student_associated_subject: 'Login information for Code.org'
+  teacher_mailer:
+    new_teacher_subject: 'Welcome to Code.org!'
   section:
     your_section:
       one: 'Your section:'
@@ -188,6 +193,12 @@ he:
     confirm:
       remove: 'Are you sure you want to leave this section?'
     remove: '(remove section)'
+    type:
+      picture: 'Picture Password'
+      word: 'Secret Words'
+      email: 'דואר אלקטרוני'
+      google_classroom: 'Google Classroom'
+      clever: 'Clever'
   follower:
     invite_sent: 'הזמנה נשלחה'
     added_teacher: '%{name} נוסף כמורה שלך'
@@ -200,6 +211,7 @@ he:
       section_not_found: "לא היתה אפשרות למצוא את מקטע קוד '%{section_code}'."
       blank_code: "אנא הזן קוד סעיף"
       cant_join_own_section: "מצטערים, לא תוכל להוסיף מקטע משלך."
+      provider_managed_section: "This section is managed by another provider and cannot be joined. Please ask your teacher to add you via %{provider} and re-sync their section."
     mail:
       student_disassociated:
         subject: 'הודעה מCode.org: %{student_name} כבר לא רשום כתלמיד שלך.'
@@ -220,6 +232,12 @@ he:
     updated: '%{model} עודכן בהצלחה.'
     destroyed: '%{model} נמחק בהצלחה.'
     access_denied: 'אין לך גישה ל%{model}.'
+  devise:
+    registrations:
+      user:
+        user_type_change_email_mismatch: "The email address you provided doesn't match the email address for this account"
+        personal_login_created_email: 'You created a personal login successfully. You can now log into Code.org with your email and password'
+        personal_login_created_username: 'You created a personal login successfully. You can now log into Code.org with your username and password'
   nav:
     header:
       finished_hoc: "סיימתי את שעת הקוד שלי"
@@ -230,6 +248,7 @@ he:
         calculate: 'Calculate something'
         applab: 'צור אפליקציה'
         gamelab: 'Make a Game Lab project'
+        weblab: 'Make a Web Lab (beta) project'
       home: "Home"
       courses: "מסלולים"
       project_gallery: "Project Gallery"
@@ -331,6 +350,9 @@ he:
     no_password_because_oauth: 'No password because you sign in with a third-party provider.'
     no_password_because_sponsored: 'See your teacher to manage your password.'
     create_personal_login: 'Create a personal login'
+    create_personal_login_under_13_info: 'If you want to keep using your Code.org account even after the end of the school year, ask your parent/guardian to help you create your own personal login below.'
+    create_personal_login_under_13_username: "Username (don't use your real name!)"
+    create_personal_login_under_13_parent_email: 'Parent/guardian email address (to recover your password)'
     create_personal_login_info: 'If you want to keep using your Code.org account even after the end of the school year, you can create your own login below.'
     create_personal_login_terms: "By creating a personal login, I agree to be bound by the Code.org <a href='%{terms_of_service_url}', target='_blank'>terms of service</a>. If I am under 13 years of age, I confirm that I have my parent or legal guardian's permission to use the Code.org services even without a teacher."
     create_personal_login_email_note: 'Note: Email addresses are not stored in a form that allows us to contact students. Students will never receive emails from Code.org except for password recovery. See our <a href=''%{privacy_policy_url}'', target=''_blank''>privacy policy</a> for more information.'
@@ -527,8 +549,13 @@ he:
       title: "גלריה"
       body: "View a gallery of app and artist images created by our users"
     gamelab:
-      title: "Game Lab (beta)"
+      title: "Game Lab"
       body: "Game Lab is a programming environment where you can make simple animations and games with objects and characters that interact with each other."
+      audience: "Ages 13+"
+      cta: "Learn how"
+    weblab:
+      title: "Web Lab (beta)"
+      body: "Web Lab is a programming environment where you can make simple web pages using HTML and CSS. Design your web pages and share your site in seconds."
       audience: "Ages 13+"
       cta: "Learn how"
     frozen:
@@ -754,7 +781,7 @@ he:
         abusive_url: 'URL of the content being reported'
         abuse_type:
           question: 'How does this content violate the %{link_start}Terms of Service%{link_end}?'
-          harassment: 'Threats, cyberbullying, harassement'
+          harassment: 'Threats, cyberbullying, harassment'
           offensive: 'תוכן פוגעני'
           infringement: 'הפרת זכויות יוצרים'
           other: 'אחר'
@@ -781,10 +808,6 @@ he:
     no_reviews_at_this_moment_notice: 'There are no peer reviews available at this moment, please check back soon'
     review_submitted: 'Your peer review was submitted'
     review_new_submission: 'Review a new submission'
-  components:
-    icon_library:
-      search_placeholder_text: 'מחפש את האייקון...'
-      no_icons_found: 'לא נמצאו סמלים'
   flex_category:
     required: 'סקירה'
     content: 'Content'
@@ -820,6 +843,7 @@ he:
     csp_ap_1: 'Chapter 1: AP Tech Setup'
     csp_ap_2: 'Chapter 2: AP Explore Performance Task'
     csp_ap_3: 'Chapter 3: AP Create Performance Task'
+    dlp: 'Reflection Prompts'
   external_links:
     disclaimer: Disclaimer
     leaving_domain: You are now leaving this domain, to a site that is not operated by Code.org.

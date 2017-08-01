@@ -20,6 +20,7 @@ const SET_IS_HOC_SCRIPT = 'progress/SET_IS_HOC_SCRIPT';
 const SET_IS_SUMMARY_VIEW = 'progress/SET_IS_SUMMARY_VIEW';
 const SET_STUDENT_DEFAULTS_SUMMARY_VIEW = 'progress/SET_STUDENT_DEFAULTS_SUMMARY_VIEW';
 const SET_CURRENT_STAGE_ID = 'progress/SET_CURRENT_STAGE_ID';
+const SET_STAGE_EXTRAS_ENABLED = 'progress/SET_STAGE_EXTRAS_ENABLED';
 
 export const SignInState = makeEnum('Unknown', 'SignedIn', 'SignedOut');
 const PEER_REVIEW_ID = -1;
@@ -46,7 +47,8 @@ const initialState = {
   // Do students see summary view by default?
   studentDefaultsSummaryView: true,
   isSummaryView: true,
-  hasFullProgress: false
+  hasFullProgress: false,
+  stageExtrasEnabled: false,
 };
 
 /**
@@ -174,6 +176,13 @@ export default function reducer(state = initialState, action) {
     };
   }
 
+  if (action.type === SET_STAGE_EXTRAS_ENABLED) {
+    return {
+      ...state,
+      stageExtrasEnabled: action.stageExtrasEnabled
+    };
+  }
+
   return state;
 }
 
@@ -242,7 +251,7 @@ export const initProgress = ({currentLevelId, professionalLearningCourse,
   stages,
   peerReviewStage,
   scriptName,
-  isFullProgress
+  isFullProgress,
 });
 
 export const mergeProgress = levelProgress => ({
@@ -270,6 +279,8 @@ export const setIsSummaryView = isSummaryView => ({ type: SET_IS_SUMMARY_VIEW, i
 export const setStudentDefaultsSummaryView = studentDefaultsSummaryView => (
   { type: SET_STUDENT_DEFAULTS_SUMMARY_VIEW, studentDefaultsSummaryView });
 export const setCurrentStageId = stageId => ({ type: SET_CURRENT_STAGE_ID, stageId });
+export const setStageExtrasEnabled = stageExtrasEnabled => (
+  { type: SET_STAGE_EXTRAS_ENABLED, stageExtrasEnabled });
 
 // Selectors
 
@@ -328,30 +339,65 @@ const peerReviewLevels = state => state.peerReviewStage.levels.map((level, index
 }));
 
 /**
+ * Determine whether the passed in level is our current level (i.e. in the dots
+ * in our header
+ * @returns {boolean}
+ */
+const isCurrentLevel = (state, level) => {
+  const currentLevelId = state.currentLevelId;
+  return !!currentLevelId &&
+    ((level.ids && level.ids.map(id => id.toString()).indexOf(currentLevelId) !== -1) ||
+    level.uid === currentLevelId);
+};
+
+/**
  * The level object passed down to use via the server (and stored in stage.stages.levels)
  * contains more data than we need. This (a) filters to the parts our views care
  * about and (b) determines current status based on the current state of
  * state.levelProgress
  */
+const levelWithStatus = (state, level) => {
+  if (level.kind !== LevelKind.unplugged) {
+    if (!level.title || typeof(level.title) !== 'number') {
+      throw new Error('Expect all non-unplugged levels to have a numerical title');
+    }
+  }
+  return {
+    status: statusForLevel(level, state.levelProgress),
+    url: level.url,
+    name: level.name,
+    progression: level.progression,
+    kind: level.kind,
+    icon: level.icon,
+    isUnplugged: level.kind === LevelKind.unplugged,
+    levelNumber: level.kind === LevelKind.unplugged ? undefined : level.title,
+    isCurrentLevel: isCurrentLevel(state, level),
+    isConceptLevel: level.is_concept_level,
+  };
+};
+
+/**
+ * Get level data for all lessons/stages
+ */
 export const levelsByLesson = state => (
   state.stages.map(stage => (
-    stage.levels.map(level => {
-      if (level.kind !== LevelKind.unplugged) {
-        if (!level.title || typeof(level.title) !== 'number') {
-          throw new Error('Expect all non-unplugged levels to have a numerical title');
-        }
-      }
-      return {
-        status: statusForLevel(level, state.levelProgress),
-        url: level.url,
-        name: level.name,
-        progression: level.progression,
-        icon: level.icon,
-        isUnplugged: level.kind === LevelKind.unplugged,
-        levelNumber: level.kind === LevelKind.unplugged ? undefined : level.title
-      };
-    })
+    stage.levels.map(level => levelWithStatus(state, level))
   ))
+);
+
+/**
+ * Get data for a particular lesson/stage
+ */
+export const levelsForLessonId = (state, lessonId) => (
+  state.stages.find(stage => stage.id === lessonId).levels.map(
+    level => levelWithStatus(state, level)
+  )
+);
+
+export const stageExtrasUrl = (state, stageId) => (
+  state.stageExtrasEnabled
+    ? state.stages.find(stage => stage.id === stageId).stage_extras_level_url
+    : ''
 );
 
 /**

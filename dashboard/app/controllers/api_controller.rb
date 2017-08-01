@@ -4,6 +4,42 @@ class ApiController < ApplicationController
   layout false
   include LevelsHelper
 
+  private def query_clever_service(endpoint)
+    begin
+      auth = {authorization: "Bearer #{current_user.oauth_token}"}
+      response = RestClient.get("https://api.clever.com/#{endpoint}", auth)
+    rescue RestClient::ExceptionWithResponse => e
+      render status: e.response.code, json: {error: e.response.body}
+    end
+
+    yield JSON.parse(response)['data']
+  end
+
+  def clever_classrooms
+    query_clever_service("v1.1/teachers/#{current_user.uid}/sections") do |response|
+      json = response.map do |section|
+        data = section['data']
+        {
+          id: data['id'],
+          name: data['course_name'],
+          section: data['course_number'],
+          enrollment_code: data['sis_id'],
+        }
+      end
+
+      render json: {courses: json}
+    end
+  end
+
+  def import_clever_classroom
+    course_id = params[:courseId].to_s
+
+    query_clever_service("v1.1/sections/#{course_id}/students") do |students|
+      section = CleverSection.from_service(course_id, current_user.id, students)
+      render json: section.summarize
+    end
+  end
+
   GOOGLE_AUTH_SCOPES = [
     Google::Apis::ClassroomV1::AUTH_CLASSROOM_COURSES_READONLY,
     Google::Apis::ClassroomV1::AUTH_CLASSROOM_ROSTERS_READONLY,
@@ -32,8 +68,8 @@ class ApiController < ApplicationController
           oauth_token_expiration: client.expires_in + Time.now.to_i,
         )
       end
-    rescue Google::Apis::ClientError => client_error
-      render status: :forbidden, json: {error: client_error}
+    rescue Google::Apis::ClientError, Google::Apis::AuthorizationError => error
+      render status: :forbidden, json: {error: error}
     end
   end
 
@@ -48,16 +84,11 @@ class ApiController < ApplicationController
     course_id = params[:courseId].to_s
 
     query_google_classroom_service do |service|
-      students = service.list_course_students(course_id).students
+      students = service.list_course_students(course_id).students || []
       section = GoogleClassroomSection.from_service(course_id, current_user.id, students)
 
       render json: section.summarize
     end
-  end
-
-  def user_menu
-    @show_pairing_dialog = !!session.delete(:show_pairing_dialog)
-    render partial: 'shared/user_header'
   end
 
   def user_hero

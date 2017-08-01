@@ -1,15 +1,28 @@
-import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
+import React, {Component, PropTypes} from 'react';
+import {connect} from 'react-redux';
 import $ from 'jquery';
 import color from "@cdo/apps/util/color";
 import SectionTable from './SectionTable';
 import RosterDialog from './RosterDialog';
-import ProgressButton from '@cdo/apps/templates/progress/ProgressButton';
-import { setSections, setValidAssignments, newSection } from './teacherSectionsRedux';
-import { loadClassroomList, importClassroomStarted } from './googleClassroomRedux';
-import { classroomShape, loadErrorShape } from './shapes';
+import Button from '@cdo/apps/templates/Button';
+import {
+  setSections,
+  setValidAssignments,
+  newSection,
+  beginEditingNewSection,
+  beginEditingSection,
+} from './teacherSectionsRedux';
+import {loadClassroomList, importClassroomStarted} from './oauthClassroomRedux';
+import {classroomShape, loadErrorShape, OAuthSectionTypes} from './shapes';
 import i18n from '@cdo/locale';
-import experiments from '@cdo/apps/util/experiments';
+import experiments, {SECTION_FLOW_2017} from '@cdo/apps/util/experiments';
+import AddSectionDialog from "./AddSectionDialog";
+import EditSectionDialog from "./EditSectionDialog";
+
+const urlByProvider = {
+  [OAuthSectionTypes.google_classroom]: '/dashboardapi/import_google_classroom',
+  [OAuthSectionTypes.clever]: '/dashboardapi/import_clever_classroom',
+};
 
 const styles = {
   breadcrumb: {
@@ -22,6 +35,8 @@ const styles = {
   }
 };
 
+const sectionsApiPath = '/dashboardapi/sections/';
+
 class SectionsPage extends Component {
   static propTypes = {
     validScripts: PropTypes.array.isRequired,
@@ -29,6 +44,7 @@ class SectionsPage extends Component {
     // redux provided
     numSections: PropTypes.number.isRequired,
     studioUrl: PropTypes.string.isRequired,
+    provider: PropTypes.string,
     classrooms: PropTypes.arrayOf(classroomShape),
     loadError: loadErrorShape,
     newSection: PropTypes.func.isRequired,
@@ -36,12 +52,20 @@ class SectionsPage extends Component {
     setValidAssignments: PropTypes.func.isRequired,
     loadClassroomList: PropTypes.func.isRequired,
     importClassroomStarted: PropTypes.func.isRequired,
+    beginEditingNewSection: PropTypes.func.isRequired,
+    beginEditingSection: PropTypes.func.isRequired,
   };
 
   state = {
     sectionsLoaded: false,
     rosterDialogOpen: false,
   };
+
+  componentWillMount() {
+    if (experiments.isEnabled('importClassroom')) {
+      this.provider = this.props.provider;
+    }
+  }
 
   componentDidMount() {
     const { validScripts, setValidAssignments, setSections } = this.props;
@@ -61,7 +85,7 @@ class SectionsPage extends Component {
       onAsyncLoad();
     });
 
-    $.getJSON("/v2/sections/").done(response => {
+    $.getJSON(sectionsApiPath).done(response => {
       sections = response;
       onAsyncLoad();
     });
@@ -69,7 +93,7 @@ class SectionsPage extends Component {
 
   handleImportOpen = () => {
     this.setState({rosterDialogOpen: true});
-    this.props.loadClassroomList();
+    this.props.loadClassroomList(this.provider);
   };
 
   handleImportCancel = () => {
@@ -79,23 +103,38 @@ class SectionsPage extends Component {
   handleImport = courseId => {
     this.props.importClassroomStarted();
 
-    $.getJSON('/dashboardapi/import_google_classroom', { courseId }).then(() => {
+    const url = urlByProvider[this.provider];
+    $.getJSON(url, { courseId }).then(() => {
       this.setState({rosterDialogOpen: false, sectionsLoaded: false});
 
-      $.getJSON("/v2/sections/").done(results => {
+      $.getJSON(sectionsApiPath).done(results => {
         this.props.setSections(results, true);
         this.setState({sectionsLoaded: true});
       });
     });
   };
 
-  addSection = () => this.props.newSection();
+  addSection = () => {
+    if (experiments.isEnabled(SECTION_FLOW_2017)) {
+      this.props.beginEditingNewSection();
+    } else {
+      return this.props.newSection();
+    }
+  };
+
+  handleEditRequest = section => {
+    if (experiments.isEnabled(SECTION_FLOW_2017)) {
+      this.props.beginEditingSection(section.id);
+    }
+  };
 
   render() {
     const { numSections } = this.props;
     const { sectionsLoaded } = this.state;
 
-    const showGoogleClassroom = experiments.isEnabled('googleClassroom');
+    const newSectionFlow = experiments.isEnabled(SECTION_FLOW_2017);
+    const showGoogleClassroom = !newSectionFlow && this.provider === OAuthSectionTypes.google_classroom;
+    const showCleverClassroom = !newSectionFlow && this.provider === OAuthSectionTypes.clever;
     return (
       <div>
         <div style={styles.breadcrumb}>
@@ -108,20 +147,28 @@ class SectionsPage extends Component {
           </b>
         </div>
         {sectionsLoaded &&
-          <ProgressButton
+          <Button
             className="uitest-newsection"
             text={i18n.newSection()}
             style={styles.button}
             onClick={this.addSection}
-            color={ProgressButton.ButtonColor.gray}
+            color={Button.ButtonColor.gray}
           />
         }
         {sectionsLoaded && showGoogleClassroom &&
-          <ProgressButton
+          <Button
             text={i18n.importFromGoogleClassroom()}
             style={styles.button}
             onClick={this.handleImportOpen}
-            color={ProgressButton.ButtonColor.gray}
+            color={Button.ButtonColor.gray}
+          />
+        }
+        {sectionsLoaded && showCleverClassroom &&
+          <Button
+            text={i18n.importFromClever()}
+            style={styles.button}
+            onClick={this.handleImportOpen}
+            color={Button.ButtonColor.gray}
           />
         }
         {sectionsLoaded && numSections === 0 &&
@@ -129,7 +176,7 @@ class SectionsPage extends Component {
             <p>{i18n.createSectionsInfo()}</p>
           </div>
         }
-        {sectionsLoaded && numSections > 0 && <SectionTable/>}
+        {sectionsLoaded && numSections > 0 && <SectionTable onEdit={this.handleEditRequest}/>}
         <RosterDialog
           isOpen={this.state.rosterDialogOpen}
           handleImport={this.handleImport}
@@ -137,7 +184,10 @@ class SectionsPage extends Component {
           classrooms={this.props.classrooms}
           loadError={this.props.loadError}
           studioUrl={this.props.studioUrl}
+          provider={this.provider}
         />
+        <AddSectionDialog handleImportOpen={this.handleImportOpen}/>
+        <EditSectionDialog/>
       </div>
     );
   }
@@ -147,6 +197,15 @@ export const UnconnectedSectionsPage = SectionsPage;
 export default connect(state => ({
   numSections: state.teacherSections.sectionIds.length,
   studioUrl: state.teacherSections.studioUrl,
-  classrooms: state.googleClassroom.classrooms,
-  loadError: state.googleClassroom.loadError,
-}), { newSection, setSections, setValidAssignments, loadClassroomList, importClassroomStarted })(SectionsPage);
+  provider: state.teacherSections.provider,
+  classrooms: state.oauthClassroom.classrooms,
+  loadError: state.oauthClassroom.loadError,
+}), {
+  newSection,
+  beginEditingNewSection,
+  beginEditingSection,
+  setSections,
+  setValidAssignments,
+  loadClassroomList,
+  importClassroomStarted,
+})(SectionsPage);

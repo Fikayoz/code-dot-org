@@ -16,7 +16,8 @@ fi:
         name: 'Nimimerkki'
         name_example: 'Näyttönimi<br/>(Esim. Viileä koodaaja tai Jane S.)'
         email: 'Sähköposti'
-        personal_email: 'Personal email address'
+        parent_email: 'Parent/guardian email'
+        personal_email: "Personal email address <a href=\"%{url}\">(click here if you don't have an email address)</a>"
         username: 'Käyttäjätunnus'
         password: 'Salasana'
         password_confirmation: 'Salasanan vahvistus'
@@ -179,6 +180,10 @@ fi:
       Kurssin tehtävät ovat hauskoja, visuaalisesti näyttäviä ja opettavat tietojenkäsittelyt peruskäsitteet käyttäen yksinkertaisia, opastettuja pelejä. Opit koodaamisen alkeet Bill Gatesin, Mark Zuckerbergin, Angry Birdsin ja Plants vs. Zombiesin avulla! :-)
       
       %{name}
+  parent_mailer:
+    student_associated_subject: 'Login information for Code.org'
+  teacher_mailer:
+    new_teacher_subject: 'Welcome to Code.org!'
   section:
     your_section:
       one: 'Jakso:'
@@ -187,6 +192,12 @@ fi:
     confirm:
       remove: 'Oletko varma että haluat poistua tältä osiolta?'
     remove: '(poista osio)'
+    type:
+      picture: 'Picture Password'
+      word: 'Secret Words'
+      email: 'Sähköposti'
+      google_classroom: 'Google Classroom'
+      clever: 'Clever'
   follower:
     invite_sent: 'Kutsu lähetetty'
     added_teacher: '%{name} lisätty opettajaksesi'
@@ -199,6 +210,7 @@ fi:
       section_not_found: "Ryhmää tunnuksella '%{section_code}' ei löytynyt."
       blank_code: "Anna ryhmän tunnus"
       cant_join_own_section: "Et voi liittyä omaan ryhmääsi."
+      provider_managed_section: "This section is managed by another provider and cannot be joined. Please ask your teacher to add you via %{provider} and re-sync their section."
     mail:
       student_disassociated:
         subject: 'Code.org ilmoitus: oppilasta %{student_name} ei ole enää yhdistetty sinuun.'
@@ -219,6 +231,12 @@ fi:
     updated: '%{model} päivitettiin onnistuneesti.'
     destroyed: '%{model} poistaminen onnistui.'
     access_denied: 'Sinulla ei ole pääsyä tähän %{model}.'
+  devise:
+    registrations:
+      user:
+        user_type_change_email_mismatch: "The email address you provided doesn't match the email address for this account"
+        personal_login_created_email: 'You created a personal login successfully. You can now log into Code.org with your email and password'
+        personal_login_created_username: 'You created a personal login successfully. You can now log into Code.org with your username and password'
   nav:
     header:
       finished_hoc: "Olen suorittanut Koodaustuntini"
@@ -229,6 +247,7 @@ fi:
         calculate: 'Calculate something'
         applab: 'Tee sovellus'
         gamelab: 'Make a Game Lab project'
+        weblab: 'Make a Web Lab (beta) project'
       home: "Etusivu"
       courses: "Kurssit"
       project_gallery: "Project Gallery"
@@ -330,6 +349,9 @@ fi:
     no_password_because_oauth: 'Ei salasanaa koska kirjaudut kolmannelta osapuolelta.'
     no_password_because_sponsored: 'Kysy opettajalta oma salasanasi.'
     create_personal_login: 'Create a personal login'
+    create_personal_login_under_13_info: 'If you want to keep using your Code.org account even after the end of the school year, ask your parent/guardian to help you create your own personal login below.'
+    create_personal_login_under_13_username: "Username (don't use your real name!)"
+    create_personal_login_under_13_parent_email: 'Parent/guardian email address (to recover your password)'
     create_personal_login_info: 'If you want to keep using your Code.org account even after the end of the school year, you can create your own login below.'
     create_personal_login_terms: "By creating a personal login, I agree to be bound by the Code.org <a href='%{terms_of_service_url}', target='_blank'>terms of service</a>. If I am under 13 years of age, I confirm that I have my parent or legal guardian's permission to use the Code.org services even without a teacher."
     create_personal_login_email_note: 'Note: Email addresses are not stored in a form that allows us to contact students. Students will never receive emails from Code.org except for password recovery. See our <a href=''%{privacy_policy_url}'', target=''_blank''>privacy policy</a> for more information.'
@@ -526,8 +548,13 @@ fi:
       title: "Galleria"
       body: "Katsele käyttäjiemme tekemiä Taiteilija-kuvia ja kokeile sovelluksia Galleriassa"
     gamelab:
-      title: "Game Lab (beta)"
+      title: "Pelilabra"
       body: "Game Lab is a programming environment where you can make simple animations and games with objects and characters that interact with each other."
+      audience: "Ikäryhmille 13+"
+      cta: "Lisätietoja"
+    weblab:
+      title: "Web Lab (beta)"
+      body: "Web Lab is a programming environment where you can make simple web pages using HTML and CSS. Design your web pages and share your site in seconds."
       audience: "Ikäryhmille 13+"
       cta: "Lisätietoja"
     frozen:
@@ -780,10 +807,6 @@ fi:
     no_reviews_at_this_moment_notice: 'There are no peer reviews available at this moment, please check back soon'
     review_submitted: 'Your peer review was submitted'
     review_new_submission: 'Review a new submission'
-  components:
-    icon_library:
-      search_placeholder_text: 'Etsitään kuvaketta...'
-      no_icons_found: 'Kuvakkeita ei löytynyt'
   flex_category:
     required: 'Yleiskatsaus'
     content: 'Content'
@@ -819,6 +842,7 @@ fi:
     csp_ap_1: 'Chapter 1: AP Tech Setup'
     csp_ap_2: 'Chapter 2: AP Explore Performance Task'
     csp_ap_3: 'Chapter 3: AP Create Performance Task'
+    dlp: 'Reflection Prompts'
   external_links:
     disclaimer: Disclaimer
     leaving_domain: You are now leaving this domain, to a site that is not operated by Code.org.

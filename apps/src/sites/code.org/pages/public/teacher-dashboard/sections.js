@@ -8,9 +8,10 @@ import teacherSections, {
   setValidLoginTypes,
   setValidGrades,
   setStudioUrl,
+  setOAuthProvider,
   newSection,
 } from '@cdo/apps/templates/teacherDashboard/teacherSectionsRedux';
-import googleClassroom from '@cdo/apps/templates/teacherDashboard/googleClassroomRedux';
+import oauthClassroom from '@cdo/apps/templates/teacherDashboard/oauthClassroomRedux';
 import SectionsPage from '@cdo/apps/templates/teacherDashboard/SectionsPage';
 
 /**
@@ -24,12 +25,13 @@ import SectionsPage from '@cdo/apps/templates/teacherDashboard/SectionsPage';
  */
 export function renderSectionsPage(data) {
   const element = document.getElementById('sections-page');
-  registerReducers({teacherSections, googleClassroom});
+  registerReducers({teacherSections, oauthClassroom});
   const store = getStore();
 
   store.dispatch(setStudioUrl(data.studiourlprefix));
   store.dispatch(setValidLoginTypes(data.valid_login_types));
   store.dispatch(setValidGrades(data.valid_grades));
+  store.dispatch(setOAuthProvider(data.provider));
 
   const query = queryString.parse(window.location.search);
   if (query.newSection) {

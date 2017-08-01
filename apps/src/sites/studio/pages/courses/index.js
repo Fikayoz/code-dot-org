@@ -13,7 +13,6 @@ function showCourses() {
 
   const script = document.querySelector('script[data-courses]');
   const coursesData = JSON.parse(script.dataset.courses);
-  const courses = coursesData.courses;
   const isEnglish = coursesData.english;
   const isTeacher = coursesData.teacher;
   const linesCount = coursesData.linescount;
@@ -26,7 +25,6 @@ function showCourses() {
 
   ReactDOM.render (
     <Courses
-      courses={courses}
       isEnglish={isEnglish}
       isTeacher={isTeacher}
       linesCount={linesCount}

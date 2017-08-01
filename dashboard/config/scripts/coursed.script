@@ -1,3 +1,5 @@
+hidden false
+
 stage 'Algorithms: Graph Paper Programming'
 level 'GraphPaperProgramming'
 
@@ -106,7 +108,6 @@ level 'courseD_collector_debugging3'
 level 'courseD_collector_debugging4'
 level 'courseD_collector_debugging5'
 level 'courseD_collector_debugging6'
-level 'courseD_collector_debugging7'
 level 'courseD_collector_debugging8'
 level 'courseD_collector_debugging9'
 level 'courseD_collector_debugging10_predict1'
@@ -188,9 +189,11 @@ stage 'Build a Play Lab Game'
 level 'courseD_playLab_cond1'
 level 'courseD_playLab_cond2'
 level 'courseD_playLab_cond3'
+level 'courseD_playLab_cond3a'
 level 'courseD_playLab_cond4'
 level 'courseD_playLab_cond5'
 level 'courseD_playLab_cond6'
+level 'courseD_playLab_cond6a'
 level 'courseD_playLab_condFP'
 
 stage 'Unplugged: Binary'

@@ -143,6 +143,27 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_equal ["Age is required"], assigns(:user).errors.full_messages
   end
 
+  test "create new teacher sends email" do
+    teacher_params = @default_params.update(user_type: 'teacher')
+    assert_creates(User) do
+      request.cookies[:pm] = 'send_new_teacher_email'
+      post :create, params: {user: teacher_params}
+    end
+
+    mail = ActionMailer::Base.deliveries.first
+    assert_equal 'Welcome to Code.org!', mail.subject
+    assert mail.body.to_s =~ /Hadi Partovi/
+  end
+
+  test "create new student does not send email" do
+    student_params = @default_params
+
+    assert_creates(User) do
+      post :create, params: {user: student_params}
+    end
+    assert ActionMailer::Base.deliveries.empty?
+  end
+
   test "create as student requires email" do
     @default_params.delete(:email)
 
@@ -379,6 +400,32 @@ class RegistrationsControllerTest < ActionController::TestCase
     student_without_password.reload
     refute student_without_password.teacher_managed_account?
     assert student_without_password.provider.nil?
+  end
+
+  test 'upgrade student to password account with parent email succeeds and sends email' do
+    student_without_password = create(:student_in_picture_section)
+    sign_in student_without_password
+
+    parent_email = 'upgraded_parent@code.org'
+
+    user_params = {
+      parent_email: parent_email,
+      username: 'upgrade_username',
+      password: '1234567',
+      password_confirmation: '1234567',
+    }
+    post :upgrade, params: {
+      user: user_params
+    }
+
+    student_without_password.reload
+    refute student_without_password.teacher_managed_account?
+    assert student_without_password.provider.nil?
+
+    mail = ActionMailer::Base.deliveries.first
+    assert_equal [parent_email], mail.to
+    assert_equal 'Login information for Code.org', mail.subject
+    assert mail.body.to_s =~ /Your child/
   end
 
   test 'deleting sets deleted at on a user' do
