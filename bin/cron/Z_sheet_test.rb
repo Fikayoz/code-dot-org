@@ -18,8 +18,6 @@ require 'json'
 class TranslateCheck
 
   def initialize
-    @transFiles = Array.new()
-    @sourceFiles = Array.new()
     @symbols = self.get_local_symbols
     @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
     @scriptsSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
@@ -53,7 +51,6 @@ class TranslateCheck
     studioFiles = Array.new()
     @symbols.each do |symbol|
       file = File.read("../../i18n/locales/#{symbol}/blockly-mooc/studio.json")
-      #text = File.read(file)
       studioFiles[studioFiles.length] = JSON.parse(file)
     end
     return studioFiles
@@ -77,9 +74,12 @@ class TranslateCheck
     return slideFiles
   end
 
-  def find_nested_key(obj,key)
+  def find_nested_key(obj,key) #Searching for a nested key when you know the exact key you're looking for
     if obj.respond_to?(:key?) && obj.key?(key)
-      return obj[key]
+      puts "Key: #{key}"
+      puts "Value: #{obj[key]}"
+      puts "///////////////////////////////////////////////////"
+      #return obj[key]
     elsif obj.respond_to?(:each)
       r = nil
       obj.find{ |*a| r=find_nested_key(a.last,key) }
@@ -87,7 +87,19 @@ class TranslateCheck
     end
   end
 
-  def get_hash_list(courseName)
+  def find_nested_key_element(obj,element) #Searching for a nested key when you only know part of what the key contains
+    obj.each do |key,value|
+      if key.include?(element)
+        puts "Checking: Element/Key = #{element} \n\n"
+        puts find_nested_key(obj,key)
+      end
+      if value.is_a?(Hash)
+        find_nested_key_element(value, element)
+      end
+    end
+  end
+
+  def compare(courseName)
     starwarsSource = self.find_nested_key(@sourceScript,courseName)
     starwarsTrans = self.find_nested_key(@transScript,courseName)
     @holder = Hash.new(0)
@@ -120,15 +132,29 @@ class TranslateCheck
     end
   end
 
-  def compare
-  end
-
   def trans_files(filesArray, phrase)
     filesArray.each do |script|
-      puts "#{script.keys[0]}:"
-      puts self.find_nested_key(script, phrase)
-      puts "///////////////////////////////////////////////////////////////////////////"
-      puts
+      #puts "#{script.keys[0]}:"
+      self.find_nested_key_element(script, phrase)
+      #puts "///////////////////////////////////////////////////////////////////////////"
+      #puts
+    end
+  end
+
+  def trans_Json_files(filesArray)
+    filesArray.each do |script|
+      #puts "#{script.keys[0]}:"
+      script.each do |hash|
+        #hash.each do |key, value|
+        #puts "Key:#{key}"
+        #puts "Value:#{value}"
+        puts hash[0]
+        puts hash[1]
+        puts "///////////////////////////////////////////////////////////////////////////"
+        puts
+        #end
+      break
+      end
     end
   end
 
@@ -137,16 +163,16 @@ class TranslateCheck
   end
 
   def mobile_files
-    trans_files(@scriptsFiles, "starwars")
+    trans_files(@mobileFiles, "starwars")
   end
 
   def slide_files
-    trans_files(@scriptsFiles, "starwars")
+    trans_files(@slideFiles, "starwars")
   end
 
-  #def trans_scripts
-  #  trans_files(@scriptsFiles, "starwars")
-  #end
+  def studio_files
+    trans_Json_files(@studioFiles)
+  end
 
 end
 
@@ -157,4 +183,4 @@ test = TranslateCheck.new
 #puts
 #test.compare_lines
 #test.get_hash_list("course2")
-#test.trans_files
+test.mobile_files
