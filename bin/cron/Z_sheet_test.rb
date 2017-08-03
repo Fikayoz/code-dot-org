@@ -89,7 +89,7 @@ class TranslateCheck
 
   def find_nested_key_element(obj,element) #Searching for a nested key when you only know part of what the key contains
     obj.each do |key,value|
-      if key.include?(element)
+      if key.to_s.include?(element)
         puts "Checking: Element/Key = #{element} \n\n"
         puts find_nested_key(obj,key)
       end
@@ -121,7 +121,7 @@ class TranslateCheck
     end
   end
 
-  def hash_search(hash)
+  def hash_search(hash) #Pass the array parameter in with a default value to let it stay between recursive loops
     hash.each do |key, value|
       if value.is_a?(Hash)
         hash_search(value)
@@ -136,8 +136,8 @@ class TranslateCheck
     filesArray.each do |script|
       #puts "#{script.keys[0]}:"
       self.find_nested_key_element(script, phrase)
-      #puts "///////////////////////////////////////////////////////////////////////////"
-      #puts
+      puts "///////////////////////////////////////////////////////////////////////////"
+      puts
     end
   end
 
@@ -153,24 +153,23 @@ class TranslateCheck
         puts "///////////////////////////////////////////////////////////////////////////"
         puts
         #end
-      break
       end
     end
   end
 
-  def scripts_files
+  def scripts_files #works
     trans_files(@scriptsFiles, "starwarsblocks")
   end
 
-  def mobile_files
+  def mobile_files #works
     trans_files(@mobileFiles, "starwars")
   end
 
-  def slide_files
+  def slide_files #works
     trans_files(@slideFiles, "starwars")
   end
 
-  def studio_files
+  def studio_files #In testing
     trans_Json_files(@studioFiles)
   end
 
@@ -183,4 +182,4 @@ test = TranslateCheck.new
 #puts
 #test.compare_lines
 #test.get_hash_list("course2")
-test.mobile_files
+test.scripts_files
