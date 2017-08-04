@@ -19,7 +19,6 @@ class TranslateCheck
 
   def initialize
     @symbols = self.get_local_symbols
-    @transScript = YAML.load_file(File.open("../../i18n/locales/ar-SA/dashboard/scripts.yml"))
     @scriptsSource = YAML.load_file(File.open("../../i18n/locales/source/dashboard/scripts.yml"))
     @studioSource = JSON.parse(File.read("../../i18n/locales/source/blockly-mooc/studio.json"))
     @mobileSource = YAML.load_file(File.open("../../i18n/locales/source/pegasus/mobile.yml"))
@@ -76,10 +75,10 @@ class TranslateCheck
 
   def find_nested_key(obj,key) #Searching for a nested key when you know the exact key you're looking for
     if obj.respond_to?(:key?) && obj.key?(key)
-      puts "Key: #{key}"
-      puts "Value: #{obj[key]}"
-      puts "///////////////////////////////////////////////////"
-      #return obj[key]
+      #puts "Key: #{key}"
+      #puts "Value: #{obj[key]}"
+      #puts "///////////////////////////////////////////////////"
+      return obj[key]
     elsif obj.respond_to?(:each)
       r = nil
       obj.find{ |*a| r=find_nested_key(a.last,key) }
@@ -90,8 +89,9 @@ class TranslateCheck
   def find_nested_key_element(obj,element) #Searching for a nested key when you only know part of what the key contains
     obj.each do |key,value|
       if key.to_s.include?(element)
-        puts "Checking: Element/Key = #{element} \n\n"
-        puts find_nested_key(obj,key)
+        #puts "Checking: Element/Key = #{element} \n\n"
+        #puts find_nested_key(obj,key)
+        return find_nested_key(obj,key)
       end
       if value.is_a?(Hash)
         find_nested_key_element(value, element)
@@ -99,15 +99,12 @@ class TranslateCheck
     end
   end
 
-  def compare(courseName)
-    starwarsSource = self.find_nested_key(@sourceScript,courseName)
-    starwarsTrans = self.find_nested_key(@transScript,courseName)
-    @holder = Hash.new(0)
-    hash_search(starwarsSource)
-    source = @holder 
-    @holder = Hash.new(0)
-    hash_search(starwarsTrans)
-    trans = @holder
+  def compare(transFile,sourceFile,courseName)
+    mainSource = self.find_nested_key_element(sourceFile,courseName)
+    mainTrans = self.find_nested_key_element(transFile,courseName)
+    #puts mainSource
+    source = hash_search(mainSource)
+    trans = hash_search(mainTrans)
     source.each do |key, value|
       puts source[key]
       puts trans[key]
@@ -121,14 +118,22 @@ class TranslateCheck
     end
   end
 
-  def hash_search(hash) #Pass the array parameter in with a default value to let it stay between recursive loops
-    hash.each do |key, value|
-      if value.is_a?(Hash)
-        hash_search(value)
-      else
-        #puts "Key: #{key}, value: #{value}"
-        @holder[key] = value
+  def hash_search(mainHash, hash=Hash.new())
+    if mainHash.is_a?(Hash)
+      mainHash.each do |key, value|
+        if value.is_a?(Hash)
+          hash = hash_search(value, hash)
+        else
+          hash[key] = value
+        end
       end
+      return hash
+    end
+  end
+
+  def full_compare_scripts(phrase)
+    @scriptsFiles.each do |script|
+      self.compare(script,@scriptsSource,phrase)
     end
   end
 
@@ -142,19 +147,16 @@ class TranslateCheck
   end
 
   def trans_Json_files(filesArray)
-    filesArray.each do |script|
+    #filesArray.each do |script|
       #puts "#{script.keys[0]}:"
-      script.each do |hash|
-        #hash.each do |key, value|
-        #puts "Key:#{key}"
-        #puts "Value:#{value}"
-        puts hash[0]
-        puts hash[1]
-        puts "///////////////////////////////////////////////////////////////////////////"
-        puts
-        #end
-      end
+    filesArray[0].each.each do |array|
+      puts array.class
+      puts array[0]
+      puts array[1]
+      puts "///////////////////////////////////////////////////////////////////////////"
+      puts
     end
+    #end
   end
 
   def scripts_files #works
@@ -178,8 +180,5 @@ end
 test = TranslateCheck.new
 #test.get_files
 #puts
-#test.read_file
-#puts
-#test.compare_lines
-#test.get_hash_list("course2")
-test.scripts_files
+#test.studio_files
+test.full_compare_scripts("starwars")
